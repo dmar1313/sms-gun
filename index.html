@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SIGNAL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg: #080808;
+  --s1: #111;
+  --s2: #1a1a1a;
+  --s3: #222;
+  --border: #2a2a2a;
+  --lime: #c8f135;
+  --lime-dim: rgba(200,241,53,0.08);
+  --text: #f0f0f0;
+  --text2: #888;
+  --text3: #444;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --sidebar: 220px;
+  --top: 56px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; height: 100vh; overflow: hidden; }
+
+/* LAYOUT */
+.shell { display: grid; grid-template-columns: var(--sidebar) 1fr; grid-template-rows: var(--top) 1fr; height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  grid-row: 1 / 3;
+  background: var(--s1);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  z-index: 30;
+}
+.logo {
+  height: var(--top);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.logo-mark {
+  width: 26px; height: 26px;
+  background: var(--lime);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  color: #080808;
+}
+.logo-text { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.15em; }
+
+nav { flex: 1; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
+
+.nb {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  color: var(--text2); background: none; border: none;
+  width: 100%; text-align: left;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: background 0.1s, color 0.1s;
+  outline: none;
+}
+.nb:hover { background: var(--s3); color: var(--text); }
+.nb.act { background: var(--lime-dim); color: var(--lime); }
+.nb .ic { width: 18px; text-align: center; font-size: 15px; }
+
+.aria-btn {
+  margin: 12px 8px;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--lime-dim);
+  border: 1px solid rgba(200,241,53,0.2);
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  outline: none;
+}
+.aria-btn:hover { background: rgba(200,241,53,0.12); }
+.aria-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.aria-label { font-size: 12px; font-weight: 600; color: var(--lime); flex: 1; }
+
+/* TOPBAR */
+.topbar {
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 12px;
+  z-index: 20;
+}
+.topbar-title { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; flex: 1; letter-spacing: 0.1em; }
+.topbar-actions { display: flex; gap: 8px; }
+
+/* CONTENT */
+.content { overflow-y: auto; padding: 20px; }
+
+/* VIEWS */
+.view { display: none; }
+.view.active { display: block; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; outline: none;
+  transition: all 0.1s; white-space: nowrap;
+}
+.btn-lime { background: var(--lime); color: #080808; }
+.btn-lime:hover { background: #d4f53c; }
+.btn-ghost { background: var(--s3); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: #444; }
+.btn-red { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 6px; }
+.btn-send { background: var(--lime); color: #080808; }
+.btn-send:hover { background: #d4f53c; }
+
+/* CARDS */
+.card { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.card-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-head-title { font-size: 13px; font-weight: 600; }
+
+/* STATS */
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+.stat { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: relative; overflow: hidden; }
+.stat::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--lime); opacity:0.5; }
+.stat.or::after { background:var(--orange); }
+.stat.gr::after { background:var(--green); }
+.stat.re::after { background:var(--red); }
+.stat-lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); font-family: 'Space Mono', monospace; }
+.stat-val { font-family: 'Space Mono', monospace; font-size: 28px; font-weight: 700; margin: 6px 0 2px; }
+.stat-sub { font-size: 11px; color: var(--text2); font-family: 'Space Mono', monospace; }
+
+/* TABLE */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { padding: 10px 14px; text-align: left; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); font-family: 'Space Mono', monospace; font-weight: 400; border-bottom: 1px solid var(--border); }
+.tbl td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tbody tr:hover td { background: rgba(255,255,255,0.015); }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 600; font-family: 'Space Mono', monospace; }
+.b-pending { background: rgba(251,191,36,0.1); color: var(--yellow); }
+.b-sent { background: rgba(74,222,128,0.1); color: var(--green); }
+.b-replied { background: var(--lime-dim); color: var(--lime); }
+.b-followup { background: rgba(251,146,60,0.1); color: var(--orange); }
+
+/* FORM */
+.lbl { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); font-family: 'Space Mono', monospace; margin-bottom: 6px; }
+.inp, .sel, .txa { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 13px; outline: none; transition: border-color 0.1s; }
+.inp:focus, .sel:focus, .txa:focus { border-color: var(--lime); }
+.inp::placeholder, .txa::placeholder { color: var(--text3); }
+.txa { resize: vertical; min-height: 70px; }
+.sel { cursor: pointer; }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ffield { display: flex; flex-direction: column; }
+
+/* TOGGLE */
+.tgl-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.tgl { padding: 6px 12px; border-radius: 7px; border: 1px solid var(--border); font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text2); background: none; font-family: 'Space Grotesk', sans-serif; outline: none; transition: all 0.1s; }
+.tgl:hover { color: var(--text); border-color: #3a3a3a; }
+.tgl.on { border-color: rgba(200,241,53,0.4); color: var(--lime); background: var(--lime-dim); }
+
+/* MODAL */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+.mhead { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.mtitle { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
+.mclose { background: none; border: none; outline: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 4px; line-height: 1; }
+.mclose:hover { color: var(--text); }
+.mbody { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+.mfoot { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ARIA PANEL */
+.aria-panel { position: fixed; top: 0; right: 0; width: 340px; height: 100vh; background: var(--s1); border-left: 1px solid var(--border); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.25s ease; z-index: 100; }
+.aria-panel.open { transform: translateX(0); }
+.aria-head { height: var(--top); padding: 0 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.aria-head-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); animation: pulse 2s infinite; }
+.aria-head-name { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: var(--lime); flex: 1; letter-spacing: 0.1em; }
+.aria-close { background: none; border: none; outline: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 4px; }
+.aria-close:hover { color: var(--text); }
+.aria-msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.aria-msg { display: flex; gap: 10px; }
+.aria-msg.user { flex-direction: row-reverse; }
+.aria-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; font-family: 'Space Mono', monospace; }
+.aria-avatar.bot { background: var(--lime-dim); color: var(--lime); border: 1px solid rgba(200,241,53,0.2); }
+.aria-avatar.me { background: var(--s3); color: var(--text2); }
+.aria-bubble { padding: 10px 13px; border-radius: 10px; font-size: 13px; line-height: 1.6; max-width: 240px; }
+.aria-msg.bot .aria-bubble { background: var(--s2); border: 1px solid var(--border); }
+.aria-msg.user .aria-bubble { background: var(--lime-dim); border: 1px solid rgba(200,241,53,0.2); }
+.aria-typing span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--text3); margin: 0 2px; animation: tdot 1.2s infinite; }
+.aria-typing span:nth-child(2) { animation-delay: 0.2s; }
+.aria-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,60%,100%{transform:translateY(0);opacity:0.4} 30%{transform:translateY(-4px);opacity:1} }
+.aria-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.aria-inp { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 13px; outline: none; resize: none; }
+.aria-inp:focus { border-color: var(--lime); }
+.aria-send { width: 34px; height: 34px; border-radius: 8px; background: var(--lime); color: #080808; border: none; cursor: pointer; font-size: 14px; flex-shrink: 0; }
+.aria-send:hover { background: #d4f53c; }
+
+/* SEND CONTROLS */
+.send-controls { display: flex; flex-direction: column; gap: 6px; min-width: 190px; }
+.send-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.dt-inp { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 10px; outline: none; color-scheme: dark; }
+.dt-inp:focus { border-color: var(--lime); }
+.sched-label { font-size: 9px; color: var(--orange); font-family: 'Space Mono', monospace; }
+
+/* EMPTY */
+.empty { padding: 60px 20px; text-align: center; color: var(--text3); }
+.empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+.empty p { font-size: 12px; margin-top: 6px; }
+
+/* TOASTS */
+.toasts { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; animation: toastIn 0.2s ease; white-space: nowrap; }
+.toast.ok { background: var(--s2); border: 1px solid var(--lime); color: var(--lime); }
+.toast.err { background: var(--s2); border: 1px solid var(--red); color: var(--red); }
+@keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* MOBILE */
+.hamburger { display: none; background: none; border: none; outline: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 4px; }
+@media (max-width: 768px) {
+  .shell { grid-template-columns: 1fr; grid-template-rows: var(--top) 1fr; }
+  .sidebar { position: fixed; top: 0; left: 0; width: 240px; height: 100vh; transform: translateX(-100%); transition: transform 0.25s ease; z-index: 200; }
+  .sidebar.open { transform: translateX(0); }
+  .hamburger { display: block; }
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .frow { grid-template-columns: 1fr; }
+  .aria-panel { width: 100%; }
+  .content { padding: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-mark">SG</div>
+      <div class="logo-text">SIGNAL</div>
+    </div>
+    <nav>
+      <button class="nb act" onclick="go('dash')"><span class="ic">◈</span> Dashboard</button>
+      <button class="nb" onclick="go('leads')"><span class="ic">◎</span> Leads</button>
+      <button class="nb" onclick="go('campaigns')"><span class="ic">◉</span> Campaigns</button>
+      <button class="nb" onclick="go('compose')"><span class="ic">✦</span> Compose</button>
+      <button class="nb" onclick="go('settings')"><span class="ic">⚙</span> Settings</button>
+    </nav>
+    <button class="aria-btn" onclick="toggleAria()">
+      <div class="aria-dot"></div>
+      <span class="aria-label">ARIA</span>
+      <span style="font-size:10px;color:var(--lime);opacity:0.6">›</span>
+    </button>
+  </div>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="hamburger" onclick="openSidebar()">☰</button>
+    <div class="topbar-title" id="topbar-title">DASHBOARD</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openImport()">↑ Import</button>
+      <button class="btn btn-lime btn-sm" onclick="openCompose()">✦ Compose</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content" onclick="closeSidebarOnTap(event)">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dash">
+      <div class="stats" id="dash-stats"></div>
+      <div class="card">
+        <div class="card-head"><span class="card-head-title">Recent Outreach</span></div>
+        <div id="recent-list"></div>
+      </div>
+    </div>
+
+    <!-- LEADS -->
+    <div class="view" id="view-leads">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <input class="inp" id="lead-search" placeholder="Search leads..." style="max-width:280px" oninput="filterLeads()">
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="openImport()">↑ Import</button>
+          <button class="btn btn-lime btn-sm" onclick="openAddLead()">+ Add Lead</button>
+        </div>
+      </div>
+      <div class="card"><div id="leads-wrap"></div></div>
+    </div>
+
+    <!-- CAMPAIGNS -->
+    <div class="view" id="view-campaigns">
+      <div class="card"><div id="camps-wrap"></div></div>
+    </div>
+
+    <!-- COMPOSE -->
+    <div class="view" id="view-compose">
+      <div class="card" style="max-width:640px">
+        <div class="card-head"><span class="card-head-title">New SMS Outreach</span></div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
+          <div class="ffield">
+            <div class="lbl">Lead</div>
+            <select class="sel" id="cp-lead" onchange="cpLeadChange()">
+              <option value="">— Select a lead —</option>
+            </select>
+          </div>
+          <div class="frow">
+            <div class="ffield">
+              <div class="lbl">Type</div>
+              <div class="tgl-group">
+                <button class="tgl on" id="tgl-b2b" onclick="cpType('b2b')">B2B</button>
+                <button class="tgl" id="tgl-b2c" onclick="cpType('b2c')">B2C</button>
+              </div>
+            </div>
+            <div class="ffield">
+              <div class="lbl">Objective</div>
+              <select class="sel" id="cp-obj">
+                <option value="book_call">Book a call</option>
+                <option value="demo">Schedule demo</option>
+                <option value="reply">Get a reply</option>
+                <option value="website">Visit website</option>
+              </select>
+            </div>
+          </div>
+          <div class="ffield">
+            <div class="lbl">Extra Context (optional)</div>
+            <input class="inp" id="cp-ctx" placeholder="Any specific angle or detail to mention...">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-lime" onclick="generateMsg()" id="gen-btn">✦ Generate</button>
+            <button class="btn btn-ghost btn-sm" onclick="regenMsg()" id="regen-btn" style="display:none">↺ Regenerate</button>
+          </div>
+          <div class="ffield" id="msg-field" style="display:none">
+            <div class="lbl">Message</div>
+            <textarea class="txa" id="cp-msg" style="min-height:120px"></textarea>
+          </div>
+          <div style="display:flex;gap:8px" id="queue-row" style="display:none">
+            <button class="btn btn-lime" onclick="queueMsg()">Queue →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="view-settings">
+      <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
+        <div class="card" style="padding:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px;font-family:'Space Mono',monospace">ABOUT YOU</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="ffield"><div class="lbl">Who you are / what you sell</div><textarea class="txa" id="s-about" placeholder="e.g. I run a B2B lead gen agency helping SaaS companies book more demos"></textarea></div>
+            <div class="ffield"><div class="lbl">Tone</div>
+              <select class="sel" id="s-tone">
+                <option value="natural">Natural</option>
+                <option value="direct">Direct</option>
+                <option value="casual">Casual</option>
+                <option value="professional">Professional</option>
+              </select>
+            </div>
+            <div class="ffield"><div class="lbl">Never Say (comma separated)</div><input class="inp" id="s-never" placeholder="just following up, circle back, synergy..."></div>
+            <div class="ffield"><div class="lbl">Calendar Link</div><input class="inp" id="s-cal" placeholder="cal.com/yourname"></div>
+            <button class="btn btn-lime btn-sm" onclick="saveSettings()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end shell -->
+
+<!-- ARIA PANEL -->
+<div class="aria-panel" id="aria-panel">
+  <div class="aria-head">
+    <div class="aria-head-dot"></div>
+    <div class="aria-head-name">ARIA</div>
+    <button class="aria-close" onclick="toggleAria()">✕</button>
+  </div>
+  <div class="aria-msgs" id="aria-msgs"></div>
+  <div class="aria-footer">
+    <textarea class="aria-inp" id="aria-inp" rows="1" placeholder="Ask ARIA anything..." onkeydown="ariaKey(event)"></textarea>
+    <button class="aria-send" onclick="sendAria()">›</button>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="import-modal">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">IMPORT LEADS</div>
+      <button class="mclose" onclick="closeModal('import-modal')">✕</button>
+    </div>
+    <div class="mbody">
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <button class="tgl on" id="tab-csv" onclick="importTab('csv')">CSV Upload</button>
+        <button class="tgl" id="tab-paste" onclick="importTab('paste')">Paste</button>
+        <button class="tgl" id="tab-manual" onclick="importTab('manual')">Manual</button>
+      </div>
+      <div id="tab-csv-body">
+        <div style="border:2px dashed var(--border);border-radius:10px;padding:30px;text-align:center;cursor:pointer" onclick="document.getElementById('csv-file').click()" ondrop="dropCSV(event)" ondragover="event.preventDefault()">
+          <div style="font-size:24px;margin-bottom:8px">↑</div>
+          <div style="font-size:13px;color:var(--text2)">Drop CSV or tap to upload</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Columns: name, phone, company, notes, type</div>
+          <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSV(event)">
+        </div>
+      </div>
+      <div id="tab-paste-body" style="display:none">
+        <div class="lbl">One lead per line: Name, Phone, Company</div>
+        <textarea class="txa" id="paste-raw" style="min-height:120px" placeholder="Alex Rivera, +15550001234, Acme Inc&#10;Sam Jones, +15550005678, Bloom Co"></textarea>
+      </div>
+      <div id="tab-manual-body" style="display:none">
+        <div class="frow">
+          <div class="ffield"><div class="lbl">Name</div><input class="inp" id="mn-name" placeholder="Alex Rivera"></div>
+          <div class="ffield"><div class="lbl">Company</div><input class="inp" id="mn-co" placeholder="Acme Inc"></div>
+        </div>
+        <div class="frow">
+          <div class="ffield"><div class="lbl">Phone</div><input class="inp" id="mn-phone" placeholder="+15550001234"></div>
+          <div class="ffield"><div class="lbl">Type</div>
+            <select class="sel" id="mn-type"><option value="b2b">B2B</option><option value="b2c">B2C</option></select>
+          </div>
+        </div>
+        <div class="ffield"><div class="lbl">Notes</div><input class="inp" id="mn-notes" placeholder="Context about this lead..."></div>
+      </div>
+      <div id="preview-wrap" style="display:none">
+        <div class="lbl" style="margin-bottom:8px">Preview</div>
+        <div id="preview-list" style="font-size:12px;color:var(--text2);max-height:150px;overflow-y:auto;font-family:'Space Mono',monospace"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('import-modal')">Cancel</button>
+      <button class="btn btn-lime btn-sm" onclick="confirmImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+const S = {
+  leads: load('sg_leads',[]),
+  campaigns: load('sg_camps',[]),
+  settings: load('sg_settings',{}),
+};
+
+let currentPage = 'dash';
+let composeCtx = {leadId:null, type:'b2b', objective:'book_call', msg:''};
+let pendingLeads = [];
+
+// ── NAVIGATION ─────────────────────────────────────────────────────
+function go(page) {
+  currentPage = page;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('act'));
+  const view = document.getElementById('view-' + page);
+  if (view) view.classList.add('active');
+  const btn = document.querySelector(`.nb[onclick="go('${page}')"]`);
+  if (btn) btn.classList.add('act');
+  const titles = {dash:'DASHBOARD',leads:'LEADS',campaigns:'CAMPAIGNS',compose:'COMPOSE',settings:'SETTINGS'};
+  document.getElementById('topbar-title').textContent = titles[page] || page.toUpperCase();
+  closeSidebar();
+  if (page==='dash') renderDash();
+  if (page==='leads') renderLeads();
+  if (page==='campaigns') renderCamps();
+  if (page==='compose') buildCompose();
+  if (page==='settings') loadSettings();
+}
+
+// ── MOBILE SIDEBAR ─────────────────────────────────────────────────
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
+function closeSidebarOnTap(e) { if (window.innerWidth<=768 && document.getElementById('sidebar').classList.contains('open')) closeSidebar(); }
+
+// ── MODALS ─────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── TOAST ──────────────────────────────────────────────────────────
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────
+function renderDash() {
+  const total = S.leads.length;
+  const sent = S.campaigns.filter(c=>c.status==='sent').length;
+  const replied = S.campaigns.filter(c=>c.status==='replied').length;
+  const pending = S.campaigns.filter(c=>c.status==='pending').length;
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat"><div class="stat-lbl">LEADS</div><div class="stat-val">${total}</div><div class="stat-sub">imported</div></div>
+    <div class="stat or"><div class="stat-lbl">SENT</div><div class="stat-val">${sent}</div><div class="stat-sub">delivered</div></div>
+    <div class="stat gr"><div class="stat-lbl">REPLIED</div><div class="stat-val">${replied}</div><div class="stat-sub">open convos</div></div>
+    <div class="stat re"><div class="stat-lbl">PENDING</div><div class="stat-val">${pending}</div><div class="stat-sub">queued</div></div>`;
+  const recent = S.campaigns.slice(-5).reverse();
+  document.getElementById('recent-list').innerHTML = recent.length
+    ? `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Lead</th><th>Status</th><th>Date</th></tr></thead><tbody>
+      ${recent.map(c=>`<tr><td><strong>${c.leadName}</strong></td><td><span class="badge b-${c.status}">${c.status}</span></td><td style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">${c.date}</td></tr>`).join('')}
+      </tbody></table></div>`
+    : `<div class="empty"><div class="empty-icon">◎</div><div>No outreach yet</div><p>Compose your first SMS to get started</p></div>`;
+}
+
+// ── LEADS ──────────────────────────────────────────────────────────
+function renderLeads() {
+  const q = (document.getElementById('lead-search')?.value||'').toLowerCase();
+  const leads = q ? S.leads.filter(l=>(l.name+l.company+l.phone).toLowerCase().includes(q)) : S.leads;
+  document.getElementById('leads-wrap').innerHTML = leads.length
+    ? `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Name</th><th>Phone</th><th>Company</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>
+      ${leads.map(l=>`<tr>
+        <td><strong>${l.name}</strong></td>
+        <td style="font-family:'Space Mono',monospace;font-size:12px">${l.phone||'—'}</td>
+        <td style="color:var(--text2)">${l.company||'—'}</td>
+        <td><span class="badge b-${l.type||'b2b'}" style="background:rgba(139,92,246,0.1);color:#a78bfa">${l.type||'b2b'}</span></td>
+        <td><span class="badge b-${l.status||'pending'}">${l.status||'pending'}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-lime btn-xs" onclick="composeFor('${l.id}')">SMS</button>
+          <button class="btn btn-red btn-xs" onclick="deleteLead('${l.id}')">✕</button>
+        </td>
+      </tr>`).join('')}
+      </tbody></table></div>`
+    : `<div class="empty"><div class="empty-icon">◎</div><div>No leads yet</div><p>Import a CSV or add manually</p></div>`;
+}
+
+function filterLeads() { renderLeads(); }
+
+function deleteLead(id) {
+  S.leads = S.leads.filter(l=>l.id!==id);
+  save('sg_leads', S.leads);
+  renderLeads(); renderDash();
+  toast('Lead removed', 'ok');
+}
+
+function openAddLead() {
+  importTab('manual');
+  openModal('import-modal');
+}
+
+// ── IMPORT ─────────────────────────────────────────────────────────
+function openImport() { pendingLeads=[]; openModal('import-modal'); }
+
+function importTab(tab) {
+  ['csv','paste','manual'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('on', t===tab);
+    document.getElementById('tab-'+t+'-body').style.display = t===tab?'block':'none';
+  });
+}
+
+function handleCSV(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { pendingLeads = parseCSV(ev.target.result); showPreview(); };
+  reader.readAsText(file);
+}
+
+function dropCSV(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { pendingLeads = parseCSV(ev.target.result); showPreview(); };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l=>l.trim());
+  const header = lines[0].toLowerCase();
+  const hasHeader = header.includes('name')||header.includes('phone');
+  return (hasHeader?lines.slice(1):lines).map(line=>{
+    const parts = line.split(',').map(p=>p.trim().replace(/^"|"$/g,''));
+    const phone = parts.find(p=>p.match(/^\+?\d[\d\s\-().]{7,}/))||'';
+    const name = parts.find(p=>p&&!p.match(/^\+?\d/)&&!p.includes('@'))||'Unknown';
+    const co = parts.find(p=>p&&p!==name&&p!==phone&&!p.includes('@'))||'';
+    return {id:uid(),name,phone,company:co,notes:'',type:'b2b',status:'pending'};
+  }).filter(l=>l.name!=='Unknown'||l.phone);
+}
+
+function showPreview() {
+  document.getElementById('preview-wrap').style.display = 'block';
+  document.getElementById('preview-list').innerHTML = pendingLeads.slice(0,5).map(l=>`${l.name} · ${l.phone} · ${l.company}`).join('<br>') + (pendingLeads.length>5?`<br>...and ${pendingLeads.length-5} more`:'');
+}
+
+function confirmImport() {
+  const tab = document.querySelector('.tgl.on#tab-csv,#tab-paste.tgl.on,#tab-manual.tgl.on')?.id?.replace('tab-','');
+  if (tab==='paste') {
+    const raw = document.getElementById('paste-raw').value;
+    pendingLeads = raw.split('\n').filter(l=>l.trim()).map(line=>{
+      const parts = line.split(',').map(p=>p.trim());
+      const phone = parts.find(p=>p.match(/^\+?\d[\d\s\-().]{7,}/))||'';
+      const name = parts.find(p=>p&&!p.match(/^\+?\d/))||'Unknown';
+      const co = parts.find(p=>p&&p!==name&&p!==phone)||'';
+      return {id:uid(),name,phone,company:co,notes:'',type:'b2b',status:'pending'};
+    }).filter(l=>l.phone||l.name!=='Unknown');
+  } else if (tab==='manual') {
+    const name = document.getElementById('mn-name').value.trim();
+    if (!name) { toast('Name required','err'); return; }
+    pendingLeads = [{id:uid(),name,phone:document.getElementById('mn-phone').value.trim(),company:document.getElementById('mn-co').value.trim(),notes:document.getElementById('mn-notes').value.trim(),type:document.getElementById('mn-type').value,status:'pending'}];
+  }
+  if (!pendingLeads.length) { toast('No leads to import','err'); return; }
+  S.leads.push(...pendingLeads);
+  save('sg_leads', S.leads);
+  closeModal('import-modal');
+  renderLeads(); renderDash();
+  toast(`Imported ${pendingLeads.length} lead${pendingLeads.length!==1?'s':''}`, 'ok');
+  pendingLeads = [];
+}
+
+// ── CAMPAIGNS ──────────────────────────────────────────────────────
+function renderCamps() {
+  document.getElementById('camps-wrap').innerHTML = S.campaigns.length
+    ? `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Lead</th><th>Status</th><th>Send</th><th></th></tr></thead><tbody>
+      ${S.campaigns.map(c=>`<tr>
+        <td><strong>${c.leadName}</strong><br><span style="font-size:11px;color:var(--text3)">${c.leadCo||''}</span></td>
+        <td><select class="sel" style="width:auto;padding:3px 8px;font-size:11px" onchange="updateCampStatus('${c.id}',this.value)">
+          <option ${c.status==='pending'?'selected':''} value="pending">pending</option>
+          <option ${c.status==='sent'?'selected':''} value="sent">sent</option>
+          <option ${c.status==='replied'?'selected':''} value="replied">replied</option>
+          <option ${c.status==='followup'?'selected':''} value="followup">followup</option>
+        </select></td>
+        <td>
+          <div class="send-controls">
+            <div class="send-row">
+              <button class="btn btn-send btn-xs" onclick="sendNow('${c.id}')">⚡ Send</button>
+              <button class="btn btn-ghost btn-xs" onclick="previewMsg('${c.id}')">👁</button>
+            </div>
+            <div class="send-row">
+              <input type="datetime-local" class="dt-inp" id="sched-${c.id}" value="${c.scheduledFor||''}">
+              <button class="btn btn-ghost btn-xs" onclick="scheduleIt('${c.id}')">⏰</button>
+            </div>
+            ${c.scheduledFor?`<div class="sched-label">⏰ ${new Date(c.scheduledFor).toLocaleString()}</div>`:''}
+          </div>
+        </td>
+        <td><button class="btn btn-red btn-xs" onclick="deleteCamp('${c.id}')">✕</button></td>
+      </tr>`).join('')}
+      </tbody></table></div>`
+    : `<div class="empty"><div class="empty-icon">◎</div><div>No campaigns yet</div><p>Compose an SMS to get started</p></div>`;
+}
+
+function updateCampStatus(id, status) {
+  const c = S.campaigns.find(x=>x.id===id);
+  if (c) { c.status=status; save('sg_camps',S.campaigns); renderDash(); }
+}
+
+function deleteCamp(id) {
+  S.campaigns = S.campaigns.filter(c=>c.id!==id);
+  save('sg_camps',S.campaigns); renderCamps(); renderDash();
+  toast('Removed','ok');
+}
+
+function scheduleIt(id) {
+  const c = S.campaigns.find(x=>x.id===id);
+  if (!c) return;
+  const val = document.getElementById('sched-'+id)?.value;
+  if (!val) { toast('Pick a date/time first','err'); return; }
+  c.scheduledFor = val;
+  save('sg_camps',S.campaigns); renderCamps();
+  toast(`Scheduled for ${new Date(val).toLocaleString()}`, 'ok');
+}
+
+function previewMsg(id) {
+  const c = S.campaigns.find(x=>x.id===id);
+  if (!c) return;
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.innerHTML = `<div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:22px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700">${c.leadName}</div>
+      <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.7;color:var(--text2);white-space:pre-wrap">${c.message||'No message.'}</div>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-send btn-sm" onclick="sendNow('${c.id}');this.closest('div[style]').remove()">⚡ Send Now</button>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('div[style]').remove()">Close</button>
+    </div>
+  </div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+}
+
+async function sendNow(id) {
+  const c = S.campaigns.find(x=>x.id===id);
+  if (!c) return;
+  const lead = S.leads.find(l=>l.id===c.leadId);
+  if (!lead?.phone) { toast(`No phone for ${c.leadName}`,'err'); return; }
+  toast(`Sending to ${c.leadName}...`,'ok');
+  try {
+    const res = await fetch('https://small-snowflake-3489tosignal-mailer.a-infj-13.workers.dev', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({to: lead.phone, message: c.message||''})
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      c.status='sent'; c.sentAt=new Date().toISOString(); c.scheduledFor=null;
+      lead.status='sent';
+      save('sg_camps',S.campaigns); save('sg_leads',S.leads);
+      renderDash(); if(currentPage==='campaigns') renderCamps();
+      toast(`✓ Sent to ${lead.name}`,'ok');
+    } else {
+      toast(`Failed: ${data.error||'Unknown error'}`,'err');
+    }
+  } catch(e) { toast('Send failed — check connection','err'); }
+}
+
+function startScheduler() {
+  setInterval(()=>{
+    const now = new Date();
+    S.campaigns.forEach(c=>{
+      if(c.scheduledFor && c.status==='pending' && now >= new Date(c.scheduledFor)) sendNow(c.id);
+    });
+  }, 60000);
+}
+
+// ── COMPOSE ────────────────────────────────────────────────────────
+function buildCompose() {
+  const sel = document.getElementById('cp-lead');
+  sel.innerHTML = '<option value="">— Select a lead —</option>' +
+    S.leads.map(l=>`<option value="${l.id}">${l.name}${l.company?' · '+l.company:''}</option>`).join('');
+  if (composeCtx.leadId) sel.value = composeCtx.leadId;
+  document.getElementById('msg-field').style.display = 'none';
+  document.getElementById('queue-row').style.display = 'none';
+  document.getElementById('regen-btn').style.display = 'none';
+}
+
+function composeFor(leadId) {
+  composeCtx.leadId = leadId;
+  go('compose');
+}
+
+function cpLeadChange() { composeCtx.leadId = document.getElementById('cp-lead').value; }
+
+function cpType(t) {
+  composeCtx.type = t;
+  document.getElementById('tgl-b2b').classList.toggle('on', t==='b2b');
+  document.getElementById('tgl-b2c').classList.toggle('on', t==='b2c');
+}
+
+async function generateMsg() {
+  const leadId = document.getElementById('cp-lead').value;
+  if (!leadId) { toast('Select a lead first','err'); return; }
+  const lead = S.leads.find(l=>l.id===leadId);
+  if (!lead) return;
+  const objective = document.getElementById('cp-obj').value;
+  const ctx = document.getElementById('cp-ctx').value;
+  const btn = document.getElementById('gen-btn');
+  btn.textContent = '...'; btn.disabled = true;
+  const objMap = {book_call:`book a call${S.settings.calLink?' (link: '+S.settings.calLink+')':''}`,demo:'schedule a demo',reply:'get a genuine reply',website:'visit the website'};
+  const never = S.settings.neverSay||'just following up, circle back, synergy, touch base';
+  const about = S.settings.about||'a business reaching out';
+  const tone = S.settings.tone||'natural';
+  const prompt = `You are an SMS outreach writer. Write a text that sounds like a real person, not a blast.
+SENDER: ${about}
+LEAD: ${lead.name}, ${lead.company||'unknown company'}, notes: ${lead.notes||'none'}
+CONTEXT: ${ctx||'none'}
+TYPE: ${composeCtx.type==='b2b'?'B2B — professional, respects their time':'B2C — warm and personal'}
+OBJECTIVE: ${objMap[objective]||objective}
+TONE: ${tone}
+NEVER SAY: ${never}
+RULES: Max 3 sentences. No subject line. No fake urgency. Be specific. ONE clear ask.
+Write the SMS only. No commentary.`;
+  try {
+    const res = await fetch('https://small-snowflake-3489tosignal-mailer.a-infj-13.workers.dev/ai', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({prompt})
+    });
+    const data = await res.json();
+    const msg = data.text||'';
+    composeCtx.msg = msg;
+    document.getElementById('cp-msg').value = msg;
+    document.getElementById('msg-field').style.display = 'flex';
+    document.getElementById('queue-row').style.display = 'flex';
+    document.getElementById('regen-btn').style.display = 'inline-flex';
+    toast('Message generated','ok');
+  } catch(e) { toast('Generation failed — check API key','err'); }
+  btn.textContent = '✦ Generate'; btn.disabled = false;
+}
+
+function regenMsg() { generateMsg(); }
+
+function queueMsg() {
+  const leadId = document.getElementById('cp-lead').value;
+  const lead = S.leads.find(l=>l.id===leadId);
+  if (!lead) return;
+  const msg = document.getElementById('cp-msg').value.trim();
+  if (!msg) { toast('Generate a message first','err'); return; }
+  const camp = {id:uid(),leadId:lead.id,leadName:lead.name,leadCo:lead.company||'',message:msg,status:'pending',date:new Date().toLocaleDateString()};
+  S.campaigns.push(camp);
+  save('sg_camps',S.campaigns);
+  lead.status='pending'; save('sg_leads',S.leads);
+  renderDash(); toast('Queued — go to Campaigns to send','ok');
+  go('campaigns');
+}
+
+// ── SETTINGS ───────────────────────────────────────────────────────
+function loadSettings() {
+  if (S.settings.about) document.getElementById('s-about').value = S.settings.about;
+  if (S.settings.tone) document.getElementById('s-tone').value = S.settings.tone;
+  if (S.settings.neverSay) document.getElementById('s-never').value = S.settings.neverSay;
+  if (S.settings.calLink) document.getElementById('s-cal').value = S.settings.calLink;
+}
+
+function saveSettings() {
+  S.settings.about = document.getElementById('s-about').value.trim();
+  S.settings.tone = document.getElementById('s-tone').value;
+  S.settings.neverSay = document.getElementById('s-never').value.trim();
+  S.settings.calLink = document.getElementById('s-cal').value.trim();
+  save('sg_settings', S.settings);
+  toast('Settings saved','ok');
+}
+
+
+// ── ARIA ───────────────────────────────────────────────────────────
+let ariaOpen = false;
+function toggleAria() {
+  ariaOpen = !ariaOpen;
+  document.getElementById('aria-panel').classList.toggle('open', ariaOpen);
+  if (ariaOpen && !document.getElementById('aria-msgs').children.length) ariaWelcome();
+}
+
+function ariaWelcome() {
+  addAriaMsg(`Hey — I'm **ARIA**. I have full control of SIGNAL.\n\nTry:\n- *"Add a lead — Alex, +15550001234, Acme, B2B"*\n- *"How many leads do I have?"*\n- *"Write SMS for all pending B2B leads"*\n- *"Delete lead [name]"*`, 'bot');
+}
+
+function ariaKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAria();} }
+
+async function sendAria() {
+  const inp = document.getElementById('aria-inp');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  addAriaMsg(msg, 'user');
+  const typing = document.createElement('div');
+  typing.className = 'aria-msg bot';
+  typing.innerHTML = `<div class="aria-avatar bot">◉</div><div class="aria-bubble"><div class="aria-typing"><span></span><span></span><span></span></div></div>`;
+  document.getElementById('aria-msgs').appendChild(typing);
+  scrollAria();
+  const ctx = `You are ARIA inside SIGNAL SMS outreach app. Full control.
+LEADS (${S.leads.length}): ${JSON.stringify(S.leads.map(l=>({id:l.id,name:l.name,phone:l.phone,company:l.company,type:l.type,status:l.status})))}
+CAMPAIGNS (${S.campaigns.length}): sent=${S.campaigns.filter(c=>c.status==='sent').length} replied=${S.campaigns.filter(c=>c.status==='replied').length} pending=${S.campaigns.filter(c=>c.status==='pending').length}
+SETTINGS: about="${S.settings.about||''}" cal="${S.settings.calLink||''}"
+Respond with text AND optional actions block:
+\`\`\`actions
+[{"type":"add_lead","name":"...","phone":"...","company":"...","leadType":"b2b"},{"type":"delete_lead","id":"..."},{"type":"update_status","id":"...","status":"pending|sent|replied"},{"type":"navigate","page":"dash|leads|campaigns|compose|settings"},{"type":"generate_sms","leadId":"...","objective":"book_call"}]
+\`\`\`
+Be brief. Confirm what you did.`;
+  try {
+    const res = await fetch('https://small-snowflake-3489tosignal-mailer.a-infj-13.workers.dev/ai', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt: msg, system: ctx})});
+    const data = await res.json();
+    const text = data.content?.[0]?.text||'Done.';
+    typing.remove();
+    const actionMatch = text.match(/```actions\n([\s\S]*?)```/);
+    const displayMsg = text.replace(/```actions[\s\S]*?```/g,'').trim();
+    if (actionMatch) {
+      try {
+        const actions = JSON.parse(actionMatch[1].trim());
+        for (const a of (Array.isArray(actions)?actions:[actions])) await doAriaAction(a);
+      } catch(e){}
+    }
+    addAriaMsg(displayMsg||'Done.','bot');
+  } catch(e) { typing.remove(); addAriaMsg('Something went wrong.','bot'); }
+}
+
+async function doAriaAction(a) {
+  switch(a.type) {
+    case 'add_lead':
+      S.leads.push({id:uid(),name:a.name||'Unknown',phone:a.phone||'',company:a.company||'',notes:a.notes||'',type:a.leadType||'b2b',status:'pending'});
+      save('sg_leads',S.leads); if(currentPage==='leads')renderLeads(); renderDash(); break;
+    case 'delete_lead':
+      S.leads=S.leads.filter(l=>l.id!==a.id); save('sg_leads',S.leads); if(currentPage==='leads')renderLeads(); renderDash(); break;
+    case 'update_status':
+      const lead=S.leads.find(l=>l.id===a.id); if(lead){lead.status=a.status;save('sg_leads',S.leads);} if(currentPage==='leads')renderLeads(); break;
+    case 'navigate': go(a.page); break;
+    case 'generate_sms':
+      composeCtx.leadId=a.leadId; go('compose'); setTimeout(generateMsg,300); break;
+  }
+}
+
+function addAriaMsg(text, role) {
+  const el = document.createElement('div');
+  el.className = `aria-msg ${role}`;
+  const fmt = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/\n/g,'<br>');
+  el.innerHTML = role==='bot'
+    ? `<div class="aria-avatar bot">◉</div><div class="aria-bubble">${fmt}</div>`
+    : `<div class="aria-avatar me">you</div><div class="aria-bubble">${fmt}</div>`;
+  document.getElementById('aria-msgs').appendChild(el);
+  scrollAria();
+}
+
+function scrollAria() { const m=document.getElementById('aria-msgs'); setTimeout(()=>m.scrollTop=m.scrollHeight,50); }
+
+// ── INIT ───────────────────────────────────────────────────────────
+function init() {
+  renderDash();
+  startScheduler();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+
